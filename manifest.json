@@ -1,0 +1,12 @@
+{
+  "name": "Telefone Misterioso",
+  "short_name": "Telefone",
+  "lang": "pt-BR",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#08020c",
+  "theme_color": "#08020c",
+  "description": "Telefone misterioso para o jogo de Halloween."
+}

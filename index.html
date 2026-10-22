@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#08020c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Telefone">
+<link rel="manifest" href="manifest.json">
+<title>Telefone</title>
+<style>
+:root{color-scheme:dark;--bg:#08020c;--text:#f0e8f4;--muted:#b9aabd}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
+html,body{margin:0;width:100%;height:100%;height:100dvh;overflow:hidden;background:#08020c}
+body{display:flex;align-items:center;justify-content:center;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);font-family:Arial,Helvetica,sans-serif;color:#fff;background:radial-gradient(circle at 50% 35%,#321043 0%,#180622 45%,#08020c 100%)}
+button{font:inherit;touch-action:manipulation}
+.phone{position:relative;isolation:isolate;width:min(360px,100%);height:min(720px,100%);height:min(720px,100dvh);flex:0 1 auto;min-height:0;overflow:hidden;border:2px solid #29202f;border-radius:42px;background:linear-gradient(145deg,#1d1622,#09070c);box-shadow:0 30px 80px #000c,inset 0 1px 1px #ffffff14,inset 0 -10px 20px #0008}
+.phone::before{content:"";position:absolute;inset:0;z-index:5;pointer-events:none;background:radial-gradient(circle at 50% 10%,#751f9626,transparent 45%)}
+.screen{position:absolute;inset:0;min-height:0;display:flex;flex-direction:column;padding:72px 20px max(20px,env(safe-area-inset-bottom));opacity:0;visibility:hidden;pointer-events:none;transition:opacity .22s ease,visibility .22s ease}
+.screen.active{opacity:1;visibility:visible;pointer-events:auto}
+/* Barra compartilhada: não é recriada nem deslocada ao trocar de tela. */
+.status{position:absolute;top:max(18px,env(safe-area-inset-top));left:25px;right:25px;height:25px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#aaa;z-index:10;pointer-events:none}
+.status-right{display:flex;align-items:center;gap:7px}
+.display-area{flex:0 0 80px;display:flex;justify-content:center;align-items:center}
+.number-display{width:100%;min-height:40px;text-align:center;font-size:clamp(21px,7vw,27px);font-weight:300;letter-spacing:3px;color:var(--text);overflow-wrap:anywhere}
+.keypad{flex:0 1 auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(8px,2.5vh,18px) clamp(6px,3vw,17px);padding:0 clamp(4px,3vw,18px);margin-top:clamp(4px,1.5vh,15px)}
+.key{width:min(68px,100%,17vw);aspect-ratio:1;justify-self:center;border:0;border-radius:50%;background:radial-gradient(circle at 35% 30%,#42314a,#24192a);color:#eee;font-size:24px;cursor:pointer;box-shadow:0 7px 15px #0006,inset 0 1px 2px #ffffff14;transition:transform .08s,background .15s}
+.key:active{transform:scale(.92);background:radial-gradient(circle at 35% 30%,#523b5d,#291b30)}
+.key span{display:block;margin-top:-2px;font-size:7px;letter-spacing:1px;color:#9b8da0}
+.bottom-buttons{margin-top:auto;display:flex;justify-content:center;align-items:center;gap:clamp(28px,12vw,45px);padding-top:14px;padding-bottom:4px}
+.delete,.call,.cancel-call{flex:0 0 auto;display:flex;align-items:center;justify-content:center;border:0;border-radius:50%;color:white;cursor:pointer}
+.delete{width:58px;height:58px;background:#2a202e;color:#b9aabd;font-size:21px;box-shadow:0 7px 15px #0006}
+.call{width:64px;height:64px;background:radial-gradient(circle at 35% 30%,#9c3040,#5b1522);font-size:25px;box-shadow:0 7px 20px #46000a99,inset 0 1px 2px #ffffff26}
+.delete:active,.call:active,.cancel-call:active{transform:scale(.91)}
+.calling-screen,.not-found-screen{justify-content:center;align-items:center;text-align:center}
+.calling-number{max-width:100%;overflow-wrap:anywhere;font-size:21px;letter-spacing:3px;color:var(--muted);margin-bottom:35px}
+.calling-text{font-size:clamp(22px,7vw,25px);letter-spacing:3px;font-weight:300;color:#eee}
+.dots::after{content:"";animation:dots 1.5s infinite}
+@keyframes dots{0%{content:""}33%{content:"."}66%{content:".."}100%{content:"..."}}
+.cancel-call{position:absolute;bottom:max(35px,env(safe-area-inset-bottom));width:60px;height:60px;background:#531722;font-size:24px}
+.not-found-icon{width:75px;height:75px;flex:0 0 auto;border-radius:50%;border:2px solid #5d3540;display:flex;align-items:center;justify-content:center;font-size:30px;color:#9b5965;margin-bottom:30px}
+.not-found-title{max-width:100%;font-size:clamp(17px,5vw,22px);letter-spacing:2px;color:#ddd}
+.not-found-number{max-width:100%;overflow-wrap:anywhere;margin-top:15px;font-size:16px;color:#806f85;letter-spacing:2px}
+.back-button{position:absolute;bottom:max(35px,env(safe-area-inset-bottom));padding:14px 25px;border-radius:25px;border:1px solid #38283e;background:#211824;color:#b9aabd;cursor:pointer}
+.shake{animation:shake .12s infinite alternate}
+@keyframes shake{from{transform:rotate(-.5deg)}to{transform:rotate(.5deg)}}
+@media(max-height:680px){.phone{border-radius:26px}.screen{padding-top:58px;padding-bottom:12px}.display-area{flex-basis:56px}.keypad{gap:7px 8px;margin-top:3px}.key{width:min(54px,14.5vw);font-size:21px}.bottom-buttons{padding-top:8px}.delete{width:48px;height:48px}.call{width:54px;height:54px}.cancel-call,.back-button{bottom:20px}.not-found-icon{width:58px;height:58px;margin-bottom:18px}}
+@media(max-width:380px){.phone{border-radius:28px}.screen{padding-left:12px;padding-right:12px}.status{left:19px;right:19px}.keypad{padding-left:4px;padding-right:4px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<main class="phone" id="phone" aria-label="Telefone misterioso">
+  <div class="status" aria-label="Barra de status"><span id="statusTime">12:34</span><div class="status-right" aria-hidden="true"><span>▮▮▮</span><span>⌁</span><span>▰</span></div></div>
+  <section class="screen active" id="dialScreen" aria-label="Teclado do telefone">
+    <div class="display-area"><div class="number-display" id="numberDisplay" aria-live="polite"></div></div>
+    <div class="keypad">
+      <button class="key" type="button" data-key="1">1</button><button class="key" type="button" data-key="2">2<span>ABC</span></button><button class="key" type="button" data-key="3">3<span>DEF</span></button>
+      <button class="key" type="button" data-key="4">4<span>GHI</span></button><button class="key" type="button" data-key="5">5<span>JKL</span></button><button class="key" type="button" data-key="6">6<span>MNO</span></button>
+      <button class="key" type="button" data-key="7">7<span>PQRS</span></button><button class="key" type="button" data-key="8">8<span>TUV</span></button><button class="key" type="button" data-key="9">9<span>WXYZ</span></button>
+      <button class="key" type="button" data-key="*">*</button><button class="key" type="button" data-key="0">0</button><button class="key" type="button" data-key="#">#</button>
+    </div>
+    <div class="bottom-buttons"><button class="delete" id="deleteButton" type="button" aria-label="Apagar último número">←</button><button class="call" id="callButton" type="button" aria-label="Ligar">☎</button></div>
+  </section>
+  <section class="screen calling-screen" id="callingScreen" aria-label="Ligando"><div class="calling-number" id="callingNumber"></div><div class="calling-text">Ligando<span class="dots"></span></div><button class="cancel-call" id="cancelCallButton" type="button" aria-label="Cancelar ligação">☎</button></section>
+  <section class="screen not-found-screen" id="notFoundScreen" aria-label="Número não encontrado"><div class="not-found-icon" aria-hidden="true">×</div><div class="not-found-title">NÚMERO NÃO ENCONTRADO</div><div class="not-found-number" id="notFoundNumber"></div><button class="back-button" id="backButton" type="button">VOLTAR</button></section>
+</main>
+<!-- Coloque audio1.mp3 até audio5.mp3 na mesma pasta deste HTML. -->
+<audio id="audio1" src="audio1.mp3" preload="auto"></audio><audio id="audio2" src="audio2.mp3" preload="auto"></audio><audio id="audio3" src="audio3.mp3" preload="auto"></audio><audio id="audio4" src="audio4.mp3" preload="auto"></audio><audio id="audio5" src="audio5.mp3" preload="auto"></audio>
+<script>
+/* Altere os números conforme os enigmas do Halloween. */
+const numbers={"1234":"audio1","5678":"audio2","2468":"audio3","1357":"audio4","9090":"audio5"};
+let currentNumber="",callTimeout=null,currentAudio=null,shakeTimeout=null;
+const phone=document.getElementById("phone"),numberDisplay=document.getElementById("numberDisplay"),callingNumber=document.getElementById("callingNumber"),notFoundNumber=document.getElementById("notFoundNumber");
+function showScreen(id){document.querySelectorAll(".screen").forEach(screen=>screen.classList.toggle("active",screen.id===id))}
+function updateDisplay(){numberDisplay.textContent=currentNumber}
+function press(number){if(currentNumber.length>=15)return;currentNumber+=number;updateDisplay()}
+function deleteNumber(){currentNumber=currentNumber.slice(0,-1);updateDisplay()}
+function clearPendingCall(){if(callTimeout!==null){clearTimeout(callTimeout);callTimeout=null}}
+function stopAudio(){document.querySelectorAll("audio").forEach(audio=>{audio.pause();try{audio.currentTime=0}catch(e){}});currentAudio=null}
+function callNumber(){if(!currentNumber)return;clearPendingCall();stopAudio();const dialedNumber=currentNumber;callingNumber.textContent=dialedNumber;showScreen("callingScreen");callTimeout=setTimeout(()=>{callTimeout=null;if(Object.prototype.hasOwnProperty.call(numbers,dialedNumber)){playAudio(numbers[dialedNumber])}else{notFoundNumber.textContent=dialedNumber;showScreen("notFoundScreen")}},1800)}
+function playAudio(audioName){const audio=document.getElementById(audioName);if(!audio){console.error("Áudio não encontrado:",audioName);notFoundNumber.textContent=currentNumber;showScreen("notFoundScreen");return}stopAudio();currentAudio=audio;phone.classList.add("shake");if(shakeTimeout!==null)clearTimeout(shakeTimeout);shakeTimeout=setTimeout(()=>{phone.classList.remove("shake");shakeTimeout=null},500);audio.currentTime=0;audio.play().catch(error=>console.error("Não foi possível reproduzir o áudio:",error));audio.onended=()=>{if(currentAudio!==audio)return;currentAudio=null;currentNumber="";updateDisplay();showScreen("dialScreen")}}
+function cancelCall(){clearPendingCall();stopAudio();if(shakeTimeout!==null){clearTimeout(shakeTimeout);shakeTimeout=null}phone.classList.remove("shake");showScreen("dialScreen")}
+function backToDial(){clearPendingCall();stopAudio();currentNumber="";updateDisplay();showScreen("dialScreen")}
+document.querySelectorAll("[data-key]").forEach(button=>button.addEventListener("click",()=>press(button.dataset.key)));
+document.getElementById("deleteButton").addEventListener("click",deleteNumber);document.getElementById("callButton").addEventListener("click",callNumber);document.getElementById("cancelCallButton").addEventListener("click",cancelCall);document.getElementById("backButton").addEventListener("click",backToDial);
+document.addEventListener("keydown",event=>{if(/^[0-9*#]$/.test(event.key))press(event.key);if(event.key==="Enter")callNumber();if(event.key==="Backspace")deleteNumber()});
+function updateClock(){document.getElementById("statusTime").textContent=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}updateClock();setInterval(updateClock,30000);
+</script>
+</body>
+</html>
